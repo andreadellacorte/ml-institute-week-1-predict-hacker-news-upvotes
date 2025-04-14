@@ -1,2 +1,18 @@
-id,data
-40176327,"(None, 'comment', 'kbenson', datetime.datetime(2024, 4, 27, 2, 40, 31), 'I can&#x27;t really comment on the quality of the game or experience or how buggy it feels because I&#x27;ve never played it, but I will say that counting fixed crash situations is a somewhat arbitrary and useless metric.  If each of those crashes affected and was reported by a single person or even nobody because no regular person could really encounter it is a vastly different situation than if each of those crashes was experienced by even 1% of the users.<p>The criteria by which something is decided to mention in the patch notes is not always purely because the users care.  Sometimes it&#x27;s because the developers want to signal effort to user and&#x2F;or upper management.<p>Maybe Mount and Blade was super boggy in the past and is <i>still</i> super buggy now so all the crashes fixed are just an indicator of how large the problem is for them and how bad the code still is.  I dunno, you didn&#x27;t really give any information to help on that front.', 40173616, [40297676, 40177054], None, None, None, None)"
+text,score
+"[-0.5136006  -0.6026468  -0.36344153  0.02284703 -0.34172907 -0.12834431
+ -0.14493349 -0.32014465  0.9112293   0.13421741  0.2922662  -0.4011808
+ -0.22090958 -0.11845318 -0.4189444   0.5052528   0.33438897 -0.26520357
+  0.10090457  0.22213449  0.4372404   0.19334008 -0.07775245  0.27515498
+  0.01954425 -0.28868723 -0.2591969  -0.66712755  0.03033786 -0.32727057
+ -0.26227668  0.50617474 -0.70269316  0.5597481  -0.21917577 -0.35251012
+ -0.29414812  0.36468458  0.08347618  0.00402028 -0.19296332 -0.9436385
+  0.7376053  -0.522301    0.05307849 -0.04344337 -0.18693018  0.629874
+  0.59555805  0.43582872  0.15591383  0.28214154  0.02268128  0.57165396
+  0.20629336 -0.21410778  1.0014751   0.05995341  0.18956463  0.82302266
+  0.8816121   0.06937204 -0.7664837  -0.7105869   0.34794798  0.2054728
+  0.55299413 -0.0870271   0.78735954 -0.25586456 -0.0341834  -0.6067239
+  0.12267631  0.22370365  0.80847895 -0.35146555  0.02725245  0.30621755
+ -0.36934355  0.264272    0.24327534 -0.5901405  -0.6238566   0.12655444
+  1.0603621  -0.00321091 -0.7990579   0.6247796   0.49171397 -0.12900531
+ -0.01437567  0.14890748 -0.5328692  -0.3965227  -0.04925347  0.04679174
+ -0.54173285 -0.5159669  -0.5135466   0.19239731]",
