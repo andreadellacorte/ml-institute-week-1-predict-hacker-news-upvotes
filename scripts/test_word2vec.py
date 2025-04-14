@@ -1,8 +1,12 @@
+import os
 import numpy as np
 from gensim.models import Word2Vec
 
+# Debug: Print current working directory
+print(f"Current working directory: {os.getcwd()}")
+
 # Load and use the model
-model = Word2Vec.load("word2vec_text8_cbow.model")
+model = Word2Vec.load("models/word2vec_text8_cbow.model")
 
 # Get vector for a word
 # print(model.wv['king'])

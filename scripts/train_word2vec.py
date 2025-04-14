@@ -32,7 +32,7 @@ cbow_elapsed = time.time() - start_time
 print(f"CBOW training completed in {cbow_elapsed:.2f} seconds.")
 
 # Save CBOW model
-cbow_model.save("word2vec_text8_cbow.model")
+cbow_model.save("models/word2vec_text8_cbow.model")
 print("CBOW model saved to 'word2vec_text8_cbow.model'.")
 
 # Train Skip-gram model
@@ -50,5 +50,5 @@ skipgram_elapsed = time.time() - start_time
 print(f"Skip-gram training completed in {skipgram_elapsed:.2f} seconds.")
 
 # Save Skip-gram model
-skipgram_model.save("word2vec_text8_skipgram.model")
+skipgram_model.save("models/word2vec_text8_skipgram.model")
 print("Skip-gram model saved to 'word2vec_text8_skipgram.model'.")
