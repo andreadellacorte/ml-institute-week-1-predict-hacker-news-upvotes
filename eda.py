@@ -1,16 +1,18 @@
 import os
+from dotenv import load_dotenv
 import psycopg2
 
-# Load environment variables (GitHub Actions will inject these automatically)
-DB_IP = os.environ["DB_IP"]
-DB_NAME = os.environ["TABLE_NAME"]
-USERNAME = os.environ["USERNAME"]
-PASSWORD = os.environ["PASSWORD"]
+# Load .env file
+load_dotenv()
 
-# Construct connection string
-conn_str = f"postgres://{USERNAME}:{PASSWORD}@{DB_IP}/{DB_NAME}"
+# Access environment variables
+DB_IP = os.getenv("DB_IP")
+DB_NAME = os.getenv("TABLE_NAME")
+USERNAME = os.getenv("USERNAME")
+PASSWORD = os.getenv("PASSWORD")
 
 # Connect and query
+conn_str = f"postgres://{USERNAME}:{PASSWORD}@{DB_IP}/{DB_NAME}"
 conn = psycopg2.connect(conn_str)
 cur = conn.cursor()
 
