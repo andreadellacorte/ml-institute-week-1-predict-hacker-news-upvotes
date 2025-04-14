@@ -10,6 +10,10 @@ from gensim.models import Word2Vec
 # Load .env file
 load_dotenv()
 
+# delete processed_rows.csv
+if os.path.exists("processed_rows.csv"):
+    os.remove("processed_rows.csv")
+
 def get_rows(table_name, limit):
     # Access environment variables
     DB_IP = os.getenv("DB_IP")
@@ -40,7 +44,7 @@ def sentence_to_vec(sentence, model):
     vectors = [model.wv[word] for word in valid_words]
     return np.mean(vectors, axis=0)  # shape: (vector_size,)
 
-def process_rows(rows):
+def process_rows(rows, debug=False):
     # Load and use the model
     model = Word2Vec.load("models/word2vec_text8_cbow.model")
 
@@ -48,19 +52,40 @@ def process_rows(rows):
     for row in rows:
         # Example processing: Convert each row to a dictionary
 
+        if row['score'] is None:
+            continue
+
+        if row['text'] is None or row['text'] == '':
+            continue
+        
+        if row['title'] is None or row['title'] == '':
+            continue
+
+        text_vector = sentence_to_vec(row['text'], model)
+
         pprint.pprint(row)
 
+        text_vector_columns = {f"text_vector_{i}": value for i, value in enumerate(text_vector)}
+        title_vector = sentence_to_vec(row['title'], model)
+        title_vector_columns = {f"title_vector_{i}": value for i, value in enumerate(title_vector)}
+
         processed.append({
-            'text': sentence_to_vec(row['text'], model),
-            'score': row['score']
+            'text': row['text'],
+            'text_length': 0 if row['text'] is None else len(row['text'].split(' ')),
+            'title': row['title'],
+            'title_length': 0 if row['title'] is None else len(row['text'].split(' ')),
+            'score': row['score'],
+            **text_vector_columns,
+            **title_vector_columns
         })
+    
     return processed
 
 table_name = "items"
 
-num_rows = 1
+num_rows = 1000
 
-rows = get_rows(table_name, 1)
+rows = get_rows(table_name, num_rows)
 
 processed_rows = process_rows(rows)
 

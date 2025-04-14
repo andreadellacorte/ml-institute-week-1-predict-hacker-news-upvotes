@@ -2,18 +2,15 @@ import os
 import numpy as np
 from gensim.models import Word2Vec
 
-# Debug: Print current working directory
-print(f"Current working directory: {os.getcwd()}")
-
 # Load and use the model
 model = Word2Vec.load("models/word2vec_text8_cbow.model")
 
 # Get vector for a word
-# print(model.wv['king'])
+print(model.wv['king'])
 
 # Find similar words
-# print(model.wv.most_similar('king'))
-# print(model.wv.most_similar('queen'))
+print(model.wv.most_similar('king'))
+print(model.wv.most_similar('queen'))
 
 def sentence_to_vec(sentence, model):
     words = sentence.lower().split()
@@ -26,5 +23,7 @@ def sentence_to_vec(sentence, model):
     return np.mean(vectors, axis=0)  # shape: (vector_size,)
 
 vector = sentence_to_vec("Hello my name is Paul Graham", model)
+
+print(vector)
 
 print(f"vector size {vector.shape}")
