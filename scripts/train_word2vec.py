@@ -22,7 +22,7 @@ print("Training CBOW model...")
 start_time = time.time()
 cbow_model = Word2Vec(
     sentences=sentences,
-    vector_size=300,
+    vector_size=100,
     window=5,
     min_count=5,
     workers=multiprocessing.cpu_count(),
