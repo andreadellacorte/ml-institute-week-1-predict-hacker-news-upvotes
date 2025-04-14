@@ -16,7 +16,9 @@ conn_str = f"postgres://{USERNAME}:{PASSWORD}@{DB_IP}/{DB_NAME}"
 conn = psycopg2.connect(conn_str)
 cur = conn.cursor()
 
-cur.execute("SELECT * FROM hacker_news.items LIMIT 10;")
+TABLE_NAME = "items"
+
+cur.execute(f"SELECT * FROM hacker_news.{TABLE_NAME} LIMIT 10;")
 rows = cur.fetchall()
 
 for row in rows:
