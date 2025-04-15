@@ -1,6 +1,5 @@
 import csv
 from datasets import load_dataset
-from collections import Counter
 import torch
 import torch.nn as nn
 import torch.optim as optim
@@ -31,7 +30,7 @@ def load_tokeniser(index_to_token_filepath, token_to_index_filepath):
 def load_tokenised_text(filepath):
     print("Loading tokenised text...")
     with open(filepath, 'r') as file:
-        tokenised_text = file.read().split()
+        tokenised_text = [int(token) for token in file.read().split()]
     print(f"Tokenised text loaded with {len(tokenised_text)} tokens.")
     return tokenised_text
 
@@ -49,9 +48,15 @@ class Word2VecCBOW(nn.Module):
 
 # Define a custom dataset for CBOW
 class CBOWDataset(Dataset):
-    def __init__(self, tokenised_text, context_size):
+    def __init__(self, tokenised_text, context_size, token_to_index):
         self.tokenised_text = tokenised_text
         self.context_size = context_size
+        self.token_to_index = token_to_index
+
+        # Checkpoint: Ensure tokenised_text is made of indices
+        if not all(isinstance(token, int) for token in self.tokenised_text):
+            raise ValueError("tokenised_text must be a list of indices (integers). Ensure tokens are converted using token_to_index.")
+
         self.data = self.create_cbow_data()
 
     def create_cbow_data(self):
@@ -67,7 +72,9 @@ class CBOWDataset(Dataset):
         return len(self.data)
 
     def __getitem__(self, idx):
-        return torch.tensor(self.data[idx][0]), torch.tensor(self.data[idx][1])
+        # No need to convert strings to indices, as tokenised_text is already indices
+        context, target = self.data[idx]
+        return torch.tensor(context, dtype=torch.long), torch.tensor(target, dtype=torch.long)
 
 if __name__ == '__main__':
     # 1. Load tokens
@@ -80,9 +87,13 @@ if __name__ == '__main__':
     tokenised_text_filepath = 'data/processed/tokenised_text.txt'
     tokenised_text = load_tokenised_text(tokenised_text_filepath)
 
+    # Checkpoint: Ensure tokenised_text is made of indices before creating the dataset
+    if not all(isinstance(token, int) for token in tokenised_text):
+        raise ValueError("tokenised_text must be a list of indices (integers). Ensure tokens are converted using token_to_index.")
+
     print("Preparing CBOW dataset...")
     context_size = 2
-    cbow_dataset = CBOWDataset(tokenised_text, context_size)
+    cbow_dataset = CBOWDataset(tokenised_text, context_size, token_to_index)
     dataloader = DataLoader(cbow_dataset, batch_size=128, shuffle=True, num_workers=4)
 
     # 3. Initialize the model, loss function, and optimizer
