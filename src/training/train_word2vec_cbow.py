@@ -28,6 +28,18 @@ def load_tokeniser(index_to_token_filepath, token_to_index_filepath):
     print(f"Tokeniser loaded with {len(token_to_index)} tokens.")
     return token_to_index, index_to_token
 
+# tokenise the text; if the token is not in token_to_index, replace it with the <UNK> token
+def tokenise_text(text, token_to_index):
+    print("Tokenising text...")
+    tokens = text.split()
+    tokenised_text = []
+    for token in tokens:
+        if token in token_to_index:
+            tokenised_text.append(token_to_index[token])
+        else:
+            tokenised_text.append(token_to_index['<UNK>'])
+    return tokenised_text
+
 # Define the Word2Vec CBOW model
 class Word2VecCBOW(nn.Module):
     def __init__(self, vocab_size, embedding_dim):
@@ -42,21 +54,18 @@ class Word2VecCBOW(nn.Module):
 
 # Define a custom dataset for CBOW
 class CBOWDataset(Dataset):
-    def __init__(self, text, token_to_index, context_size):
-        self.text = text
-        self.token_to_index = token_to_index
+    def __init__(self, tokenised_text, context_size):
+        self.tokenised_text = tokenised_text
         self.context_size = context_size
         self.data = self.create_cbow_data()
 
     def create_cbow_data(self):
         data = []
-        for i in range(self.context_size, len(self.text) - self.context_size):
-            context = self.text[i - self.context_size:i] + self.text[i + 1:i + self.context_size + 1]
-            target = self.text[i]
-            context_indices = [self.token_to_index[token] for token in context if token in self.token_to_index]
-            target_index = self.token_to_index.get(target, None)
-            if len(context_indices) == 2 * self.context_size and target_index is not None:
-                data.append((context_indices, target_index))
+        for i in range(self.context_size, len(self.tokenised_text) - self.context_size):
+            context = self.tokenised_text[i - self.context_size:i] + self.tokenised_text[i + 1:i + self.context_size + 1]
+            target = self.tokenised_text[i]
+            if len(context) == 2 * self.context_size and target is not None:
+                data.append((context, target))
         return data
 
     def __len__(self):
@@ -81,22 +90,35 @@ if __name__ == '__main__':
     dataset = load_dataset("afmck/text8")
     text = dataset['train'][0]['text']
 
-    print(len(text.split()))
-
     # 3. No need for pre-processing as the dataset is already preprocessed
 
     # 4. Prepare the dataset for CBOW
+    
+    tokenised_text = tokenise_text(text, token_to_index)
+    print(f"Text tokenised with {len(tokenised_text)} tokens.")
+    unique_tokens = Counter(tokenised_text)
+    print(f"Number of unique tokens in tokenised text: {len(unique_tokens)}")
+
+    # save tokenised text to file
+    tokenised_text_filepath = 'data/processed/tokenised_text.txt'
+    with open(tokenised_text_filepath, 'w') as file:
+        for token in tokenised_text:
+            file.write(f"{token} ")
+    print(f"Tokenised text saved to {tokenised_text_filepath}.")
+
     print("Preparing CBOW dataset...")
     context_size = 2
-    tokenized_text = [token for token in text.split() if token in token_to_index]
-    cbow_dataset = CBOWDataset(tokenized_text, token_to_index, context_size)
-    dataloader = DataLoader(cbow_dataset, batch_size=64, shuffle=True)
+    cbow_dataset = CBOWDataset(tokenised_text, context_size)
+    dataloader = DataLoader(cbow_dataset, batch_size=256, shuffle=True, num_workers=4)
 
     # 5. Initialize the model, loss function, and optimizer
     print("Initializing model...")
     vocab_size = len(token_to_index)
     embedding_dim = 100
-    model = Word2VecCBOW(vocab_size, embedding_dim)
+
+    # Move the model to GPU if available
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    model = Word2VecCBOW(vocab_size, embedding_dim).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
 
@@ -105,14 +127,20 @@ if __name__ == '__main__':
     num_epochs = 5
     for epoch in range(num_epochs):
         epoch_loss = 0
-        for context, target in tqdm(dataloader, desc=f"Epoch {epoch + 1}/{num_epochs}"):
-            optimizer.zero_grad()
-            output = model(context)
-            loss = criterion(output, target)
-            loss.backward()
-            optimizer.step()
-            epoch_loss += loss.item()
-        print(f"Epoch {epoch + 1}, Loss: {epoch_loss:.4f}")
+        start_epoch_time = time.time()
+        with tqdm(total=len(dataloader), desc=f"Epoch {epoch + 1}/{num_epochs}") as pbar:
+            for context, target in dataloader:
+                start_sample_time = time.time()
+                context, target = context.to(device), target.to(device)
+                optimizer.zero_grad()
+                output = model(context)
+                loss = criterion(output, target)
+                loss.backward()
+                optimizer.step()
+                epoch_loss += loss.item()
+                pbar.update(1)
+                pbar.set_postfix(loss=loss.item(), sample_time=f"{time.time() - start_sample_time:.4f}s")
+        print(f"Epoch {epoch + 1}, Loss: {epoch_loss:.4f}, Time: {time.time() - start_epoch_time:.2f} seconds")
 
     # 7. Save the trained model
     print("Saving model...")

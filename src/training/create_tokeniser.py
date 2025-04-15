@@ -45,7 +45,7 @@ print(f"Most common token: {max(tokens, key=tokens.get)}")
 print(f"Frequency of most common token: {tokens[max(tokens, key=tokens.get)]}")
 
 # 5. Set a treshold below which tokens are removed from the tokens
-threshold = 5
+threshold = 70
 
 filtered_tokens = {word: freq for word, freq in tokens.items() if freq >= threshold}
 print(f"Number of tokens after filtering: {len(filtered_tokens)}")
@@ -58,7 +58,11 @@ print(f"Token to index mapping: {list(token_to_index.items())[:10]}")
 index_to_token = {index: token for token, index in token_to_index.items()}
 print(f"Index to token mapping: {list(index_to_token.items())[:10]}")
 
-# 7. Save filtered tokens to a data file
+# 7. Add to the tokeniser <UNK> for unknown tokens
+token_to_index['<UNK>'] = len(token_to_index)
+index_to_token[len(index_to_token)] = '<UNK>'
+
+# 8. Save filtered tokens to a data file
 output_file_path = "data/processed/token_to_index.csv"
 with open(output_file_path, 'w') as file:
     for token, index in token_to_index.items():
