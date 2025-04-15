@@ -83,7 +83,7 @@ if __name__ == '__main__':
     print("Preparing CBOW dataset...")
     context_size = 2
     cbow_dataset = CBOWDataset(tokenised_text, context_size)
-    dataloader = DataLoader(cbow_dataset, batch_size=256, shuffle=True, num_workers=4)
+    dataloader = DataLoader(cbow_dataset, batch_size=128, shuffle=True, num_workers=4)
 
     # 3. Initialize the model, loss function, and optimizer
     print("Initializing model...")
@@ -92,6 +92,7 @@ if __name__ == '__main__':
 
     # 4. Move the model to GPU if available
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    print(f"Using device: {device}")
     model = Word2VecCBOW(vocab_size, embedding_dim).to(device)
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=0.001)
