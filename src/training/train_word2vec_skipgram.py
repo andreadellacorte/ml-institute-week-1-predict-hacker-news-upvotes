@@ -55,8 +55,6 @@ class SkipGramDataset(Dataset):
         self.context_size = context_size
         self.token_to_index = token_to_index
         self.unk = token_to_index.get("<UNK>", -1)  # Default to -1 if "<UNK>" is not found
-        if self.unk == -1:
-            raise ValueError("The '<UNK>' token is missing from the token_to_index mapping.")
         if len(self.text) < 2 * self.context_size + 1:
             raise ValueError(f"Dataset is too short for the given context size ({self.context_size}). "
                              f"Minimum required length is {2 * self.context_size + 1}, but got {len(self.text)}.")
