@@ -129,7 +129,7 @@ if __name__ == '__main__':
                 context = context.view(-1)  # Ensure context is a 1D tensor of target indices
                 optimizer.zero_grad()
                 if scaler:  # Mixed precision training
-                    with torch.amp.autocast():
+                    with torch.amp.autocast(device_type=device.type):
                         scores = model(target, context)
                         loss = -torch.mean(torch.log(torch.sigmoid(scores)))
                     scaler.scale(loss).backward()
