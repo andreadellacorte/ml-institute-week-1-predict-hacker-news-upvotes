@@ -93,7 +93,7 @@ if __name__ == '__main__':
     cbow_dataset = CBOWDataset(text.split(), context_size, token_to_index)
     
     num_workers = min(4, multiprocessing.cpu_count())  # Use up to 4 workers or the number of CPU cores available
-    dataloader = DataLoader(cbow_dataset, batch_size=64, shuffle=True, num_workers=num_workers, pin_memory=True)
+    dataloader = DataLoader(cbow_dataset, batch_size=128, shuffle=True, num_workers=num_workers, pin_memory=True)
 
     # 3. Initialize the model, loss function, and optimizer
     print("Initializing model...")
