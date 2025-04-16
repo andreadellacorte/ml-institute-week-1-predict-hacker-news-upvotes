@@ -181,11 +181,12 @@ if __name__ == '__main__':
                 if (i % 100 == 0):
                     pbar.update(100)
                     pbar.set_postfix(loss=loss.item(), sample_time=f"{(time.time() - start_sample_time) * 1000:.2f}ms")
-                    run.log({"epoch": epoch + 1, "loss": avg_loss})
+                    run.log({"loss": loss.item()})
                 i+=1
         avg_loss = epoch_loss / len(dataloader)
 
         print(f"Epoch {epoch + 1}, Loss: {epoch_loss:.4f}, Avg Loss: {avg_loss:.4f}, Time: {time.time() - start_epoch_time:.2f} seconds")
+        run.log({"epoch": epoch + 1, "loss": avg_loss})
 
         # Save the model and optimizer state after every epoch
         torch.save({
