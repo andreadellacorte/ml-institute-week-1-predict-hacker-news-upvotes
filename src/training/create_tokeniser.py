@@ -73,7 +73,7 @@ if __name__ == "__main__":
     print(f"Frequency of most common token: {tokens[max(tokens, key=tokens.get)]}")
 
     # 5. Set a treshold below which tokens are removed from the tokens
-    threshold = 70
+    threshold = 5
 
     filtered_tokens = {word: freq for word, freq in tokens.items() if freq >= threshold}
     print(f"Number of tokens after filtering: {len(filtered_tokens)}")
