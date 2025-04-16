@@ -25,33 +25,6 @@ def tokenize_text(text):
     
     return word_freq
 
-def load_tokeniser(index_to_token_filepath, token_to_index_filepath):
-    """
-    Loads the token-to-index and index-to-token mappings from CSV files.
-
-    Args:
-        index_to_token_filepath (str): Path to the index-to-token CSV file.
-        token_to_index_filepath (str): Path to the token-to-index CSV file.
-
-    Returns:
-        tuple: A tuple containing two dictionaries: token_to_index and index_to_token.
-    """
-    print("Loading tokeniser...")
-    token_to_index = {}
-    with open(token_to_index_filepath, 'r') as file:
-        for line in file:
-            token, index = line.strip().split(',')
-            token_to_index[token] = int(index)
-
-    index_to_token = {}
-    with open(index_to_token_filepath, 'r') as file:
-        for line in file:
-            index, token = line.strip().split(',')
-            index_to_token[int(index)] = token
-
-    print(f"Tokeniser loaded with {len(token_to_index)} tokens.")
-    return token_to_index, index_to_token
-
 if __name__ == "__main__":
     # 1. Load the dataset
     print("Loading dataset...")
