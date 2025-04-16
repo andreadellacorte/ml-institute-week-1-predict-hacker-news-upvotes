@@ -33,7 +33,6 @@ if [[ "$CONDA_DEFAULT_ENV" == "ml-institute-week1-project" ]]; then
         echo "Invalid parameter. Please use '--gpu' for GPU dependencies or '--cpu' for CPU dependencies."
         exit 1
     fi
-fi
 else
     echo "Please run 'conda activate ml-institute-week1-project' and then re-run this script."
 fi
