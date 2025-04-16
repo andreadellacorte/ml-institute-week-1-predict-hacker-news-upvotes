@@ -29,8 +29,11 @@ run = wandb.init(
         "context_size": context_size,
         "dataset": dataset,
         "model": model
-    }
+    },
+    name=f"{model}_{dataset}_bs{batch_size}_lr{learning_rate}_epochs{num_epochs}",
 )
+
+wandb.watch(model, log="all")
 
 # Load the token to index mapping from a CSV file
 def load_tokeniser(token_to_index_filepath, index_to_token_filepath):
@@ -179,11 +182,11 @@ if __name__ == '__main__':
                 if (i % 100 == 0):
                     pbar.update(100)
                     pbar.set_postfix(loss=loss.item(), sample_time=f"{(time.time() - start_sample_time) * 1000:.2f}ms")
+                    run.log({"epoch": epoch + 1, "loss": avg_loss})
                 i+=1
         avg_loss = epoch_loss / len(dataloader)
 
         print(f"Epoch {epoch + 1}, Loss: {epoch_loss:.4f}, Avg Loss: {avg_loss:.4f}, Time: {time.time() - start_epoch_time:.2f} seconds")
-        run.log({"epoch": epoch + 1, "loss": avg_loss})
 
         # Save the model and optimizer state after every epoch
         torch.save({
