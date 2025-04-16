@@ -68,9 +68,12 @@ class SkipGramDataset(Dataset):
                     for j in range(i - self.context_size, i + self.context_size + 1)
                     if j != i
                 ]
+                # Validate indices
+                if target < 0 or target >= len(self.token_to_index):
+                    continue
+                context = [ctx for ctx in context if 0 <= ctx < len(self.token_to_index)]
                 for ctx in context:
-                    if target is not None and ctx is not None:
-                        data.append((target, ctx))
+                    data.append((target, ctx))
                 if i % 100 == 0:  # Update progress bar every 100 iterations
                     pbar.update(100)
                     pbar.update(len(self.text) % 100)  # Update remaining iterations
@@ -122,11 +125,21 @@ if __name__ == '__main__':
     for epoch in range(num_epochs):
         epoch_loss = 0
         start_epoch_time = time.time()
+        i = len(dataloader)
         with tqdm(total=len(dataloader), desc=f"Epoch {epoch + 1}/{num_epochs}") as pbar:
             for target, context in dataloader:
                 start_sample_time = time.time()
                 target, context = target.to(device, non_blocking=True), context.to(device, non_blocking=True)
                 context = context.view(-1)  # Ensure context is a 1D tensor of target indices
+
+                # Debugging: Check for out-of-bounds indices
+                if torch.any(target < 0) or torch.any(target >= vocab_size):
+                    print("Error: Out-of-bounds target indices detected.")
+                    continue
+                if torch.any(context < 0) or torch.any(context >= vocab_size):
+                    print("Error: Out-of-bounds context indices detected.")
+                    continue
+
                 optimizer.zero_grad()
                 if scaler:  # Mixed precision training
                     with torch.amp.autocast(device_type=device.type):
@@ -141,8 +154,9 @@ if __name__ == '__main__':
                     loss.backward()
                     optimizer.step()
                 epoch_loss += loss.item()
-                pbar.update(1)
-                pbar.set_postfix(loss=loss.item(), sample_time=f"{(time.time() - start_sample_time) * 1000:.2f}ms")
+                if (i % 100 == 0):
+                    pbar.update(100)
+                    pbar.set_postfix(loss=loss.item(), sample_time=f"{(time.time() - start_sample_time) * 1000:.2f}ms")
         avg_loss = epoch_loss / len(dataloader)
         print(f"Epoch {epoch + 1}, Loss: {epoch_loss:.4f}, Avg Loss: {avg_loss:.4f}, Time: {time.time() - start_epoch_time:.2f} seconds")
 
