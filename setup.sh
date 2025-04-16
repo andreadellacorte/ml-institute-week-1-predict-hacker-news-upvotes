@@ -16,7 +16,14 @@ if ! conda info --envs | grep -q "ml-institute-week1-project"; then
 fi
 
 if [[ "$CONDA_DEFAULT_ENV" == "ml-institute-week1-project" ]]; then
-    pip install -r requirements.txt
+    if [[ "$(lspci | grep -i nvidia)" ]]; then
+        echo "GPU detected. Installing GPU-specific dependencies..."
+        pip install -r requirements-gpu.txt
+    else
+        echo "No GPU detected. Installing CPU-specific dependencies..."
+        pip install -r requirements-cpu.txt
+    fi
+fi
 else
     echo "Please run 'conda activate ml-institute-week1-project' and then re-run this script."
 fi
