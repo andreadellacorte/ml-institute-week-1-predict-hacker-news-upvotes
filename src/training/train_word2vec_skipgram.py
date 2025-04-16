@@ -76,9 +76,7 @@ class SkipGramDataset(Dataset):
                         data.append((target, ctx))
                 if i % 100 == 0:  # Update progress bar every 100 iterations
                     pbar.update(100)
-            pbar.update(len(self.text) % 100)  # Update remaining iterations
-                        data.append((target, ctx))
-                pbar.update(1)
+                    pbar.update(len(self.text) % 100)  # Update remaining iterations
         print("Skip-gram data creation complete.")
         return data
 
