@@ -33,8 +33,6 @@ run = wandb.init(
     name=f"{model}_{dataset}_bs{batch_size}_lr{learning_rate}_epochs{num_epochs}",
 )
 
-wandb.watch(model, log="all")
-
 # Load the token to index mapping from a CSV file
 def load_tokeniser(token_to_index_filepath, index_to_token_filepath):
     print("Loading tokeniser...")
@@ -136,13 +134,14 @@ if __name__ == '__main__':
     print("Initializing model...")
     vocab_size = len(token_to_index)
     
-
     # 4. Move the model to GPU if available
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using device: {device}")
     model = Word2VecSkipGram(vocab_size, embedding_dim).to(device)
     criterion = nn.CrossEntropyLoss().to(device)
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
+
+    wandb.watch(model, log="all")
 
     # 5. Train the model
     print("Training model...")
