@@ -59,13 +59,16 @@ class CBOWDataset(Dataset):
     def create_cbow_data(self):
         data = []
         print("Creating CBOW data...")
+        i = 0
         with tqdm(total=len(self.text), desc="Processing CBOW data") as pbar:
             for i in range(self.context_size, len(self.text) - self.context_size):
                 context = [self.token_to_index.get(token, self.unk) for token in self.text[i - self.context_size:i] + self.text[i + 1:i + self.context_size + 1]]
                 target = self.token_to_index.get(self.text[i], self.unk)
                 if len(context) == 2 * self.context_size and target is not None:
                     data.append((context, target))
-                pbar.update(1)
+                if i % 1000 == 0:
+                    pbar.update(1000)
+                    pbar.update(len(self.text) % 100)  # Update remaining iterations
         print("CBOW data creation complete.")
         return data
 
@@ -113,6 +116,7 @@ if __name__ == '__main__':
     scaler = torch.amp.GradScaler() if torch.cuda.is_available() else None  # Use mixed precision only if GPU is available
     for epoch in range(num_epochs):
         epoch_loss = 0
+        i = 0
         start_epoch_time = time.time()
         with tqdm(total=len(dataloader), desc=f"Epoch {epoch + 1}/{num_epochs}") as pbar:
             for context, target in dataloader:
@@ -132,8 +136,10 @@ if __name__ == '__main__':
                     loss.backward()
                     optimizer.step()
                 epoch_loss += loss.item()
-                pbar.update(1)
-                pbar.set_postfix(loss=loss.item(), sample_time=f"{(time.time() - start_sample_time) * 1000:.2f}ms")
+                if i % 1000 == 0:
+                    pbar.update(1000)
+                    pbar.set_postfix(loss=loss.item(), sample_time=f"{(time.time() - start_sample_time) * 1000:.2f}ms")
+                i += 1
         avg_loss = epoch_loss / len(dataloader)
         print(f"Epoch {epoch + 1}, Loss: {epoch_loss:.4f}, Avg Loss: {avg_loss:.4f}, Time: {time.time() - start_epoch_time:.2f} seconds")
 

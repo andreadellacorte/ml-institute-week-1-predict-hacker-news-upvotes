@@ -35,3 +35,4 @@ tzdata==2025.2
 urllib3==2.4.0
 xxhash==3.5.0
 yarl==1.19.0
+wandb=0.19.9
