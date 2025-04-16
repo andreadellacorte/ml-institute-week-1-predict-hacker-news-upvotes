@@ -34,5 +34,5 @@ if [[ "$CONDA_DEFAULT_ENV" == "ml-institute-week1-project" ]]; then
         exit 1
     fi
 else
-    echo "Please run 'conda activate ml-institute-week1-project' and then re-run this script."
+    echo "Please run 'conda init' and 'conda activate ml-institute-week1-project' and then re-run this script."
 fi
