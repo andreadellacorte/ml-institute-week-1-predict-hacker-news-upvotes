@@ -110,7 +110,7 @@ if __name__ == '__main__':
     # 5. Train the model
     print("Training model...")
     num_epochs = 5
-    scaler = torch.cuda.amp.GradScaler() if torch.cuda.is_available() else None  # Use mixed precision only if GPU is available
+    scaler = torch.amp.GradScaler() if torch.cuda.is_available() else None  # Use mixed precision only if GPU is available
     for epoch in range(num_epochs):
         epoch_loss = 0
         start_epoch_time = time.time()
@@ -120,7 +120,7 @@ if __name__ == '__main__':
                 context, target = context.to(device, non_blocking=True), target.to(device, non_blocking=True)
                 optimizer.zero_grad()
                 if scaler:  # Mixed precision training
-                    with torch.cuda.amp.autocast():
+                    with torch.amp.autocast():
                         output = model(context)
                         loss = criterion(output, target)
                     scaler.scale(loss).backward()

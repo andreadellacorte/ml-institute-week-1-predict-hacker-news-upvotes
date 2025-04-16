@@ -60,8 +60,8 @@ if __name__ == "__main__":
     print(f"Index to token mapping: {list(index_to_token.items())[:10]}")
 
     # 7. Add to the tokeniser <UNK> for unknown tokens
-    token_to_index['<UNK>'] = len(token_to_index)
-    index_to_token[len(index_to_token)] = '<UNK>'
+    token_to_index['<UNK>'] = -1
+    index_to_token[-1] = '<UNK>'
 
     # 8. Save filtered tokens to a data file
     output_file_path = "data/processed/token_to_index.csv"
