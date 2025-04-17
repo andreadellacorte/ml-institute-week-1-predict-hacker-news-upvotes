@@ -1,5 +1,11 @@
 #bin/bash
 
+rm -rf .venv
+
+python -m venv .venv
+
+source .venv/bin/activate
+
 if [[ "$1" == "--gpu" ]]; then
     echo "GPU mode selected. Installing GPU-specific dependencies..."
     pip install -r requirements-gpu.txt

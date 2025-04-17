@@ -1,4 +1,6 @@
+import os
 import csv
+import requests
 import multiprocessing
 from datasets import load_dataset
 import torch
@@ -10,12 +12,17 @@ from tqdm import tqdm
 import wandb
 
 embedding_dim = 200
-batch_size = 128
-num_epochs = 5
+batch_size = 2048  # Increased batch size to better utilize GPU memory
+num_epochs = 1
 context_size = 2
 dataset = "afmck/text8"
 model = "Word2Vec Skip-gram"
-learning_rate = 0.001
+learning_rate = 0.05  # Slightly increased learning rate to match larger batch size
+
+ntfy_topic = "mlx7-institute-dellacorte"
+
+# Enable CUDA_LAUNCH_BLOCKING for debugging
+os.environ['CUDA_LAUNCH_BLOCKING'] = '1'
 
 # Start a new wandb run to track this script.
 run = wandb.init(
@@ -127,7 +134,7 @@ if __name__ == '__main__':
     print("Preparing Skip-gram dataset...")
     skipgram_dataset = SkipGramDataset(text.split(), context_size, token_to_index)
 
-    num_workers = min(4, multiprocessing.cpu_count())  # Use up to 4 workers or the number of CPU cores available
+    num_workers = min(8, multiprocessing.cpu_count())  # Increased number of workers for faster data loading
     dataloader = DataLoader(skipgram_dataset, batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
 
     # 3. Initialize the model, loss function, and optimizer
@@ -145,7 +152,7 @@ if __name__ == '__main__':
 
     # 5. Train the model
     print("Training model...")
-    scaler = torch.amp.GradScaler() if torch.cuda.is_available() else None  # Use mixed precision only if GPU is available
+    scaler = torch.amp.GradScaler() if torch.cuda.is_available() else None  # Ensure mixed precision training is enabled
     for epoch in range(num_epochs):
         epoch_loss = 0
         start_epoch_time = time.time()
@@ -188,12 +195,20 @@ if __name__ == '__main__':
         print(f"Epoch {epoch + 1}, Loss: {epoch_loss:.4f}, Avg Loss: {avg_loss:.4f}, Time: {time.time() - start_epoch_time:.2f} seconds")
         run.log({"epoch": epoch + 1, "loss": avg_loss})
 
+        epoch_model_filepath = f'data/models/word2vec_skipgram_epoch_{epoch + 1}.pth'
+
         # Save the model and optimizer state after every epoch
         torch.save({
             'model_state_dict': model.state_dict(),
             'optimizer_state_dict': optimizer.state_dict()
-        }, f'data/models/word2vec_skipgram_epoch_{epoch + 1}.pth')
+        }, epoch_model_filepath)
+
+        wandb.save(os.path.join(wandb.run.dir, epoch_model_filepath))
+
         print(f"Model and optimizer state saved for epoch {epoch + 1}.")
+
+        requests.post("https://ntfy.sh/" + ntfy_topic,
+                      data="Completed {epoch} / {num_epochs}".encode(encoding='utf-8'))
 
         # First the 10 most similar words for an example dictionary
 
@@ -220,6 +235,11 @@ if __name__ == '__main__':
                 # Get the embedding for the word
                 word_embedding = model.input_embeddings(torch.tensor(word_index).to(device)).detach().cpu().numpy()
                 example_word_embedding = model.input_embeddings(torch.tensor(example_word_index).to(device)).detach().cpu().numpy()
+
+                # Validate tensor shapes
+                if word_embedding.shape != example_word_embedding.shape:
+                    print(f"Error: Shape mismatch for {word} and {example_word} embeddings.")
+                    continue
 
                 # Calculate cosine similarity
                 similarity = torch.nn.functional.cosine_similarity(
@@ -248,6 +268,10 @@ if __name__ == '__main__':
             # Get the embedding for the phrase
             phrase_embedding = model.input_embeddings(phrase_tensor).mean(dim=0, keepdim=True)
 
+            if phrase_embedding.shape[1] != model.input_embeddings.weight.shape[1]:
+                print("Error: Shape mismatch between phrase embedding and model embeddings.")
+                continue
+
             # Get the top 5 most similar words
             similarities = torch.nn.functional.cosine_similarity(
                 model.input_embeddings.weight,
@@ -258,12 +282,18 @@ if __name__ == '__main__':
 
             print(f"Top 5 words for '{phrase}': {[index_to_token[i.item()] for i in top_5_indices]}")
 
-    run.finish()
+    final_model_filepath = 'data/models/word2vec_skipgram_final.pth'
+
+    requests.post("https://ntfy.sh/" + ntfy_topic,
+                  data="Completed training".encode(encoding='utf-8'))
 
     # 6. Save the final trained model and optimizer state
     print("Saving final model and optimizer state...")
     torch.save({
     'model_state_dict': model.state_dict(),
     'optimizer_state_dict': optimizer.state_dict()
-    }, 'data/models/word2vec_skipgram_final.pth')
+    }, final_model_filepath)
+    wandb.save(os.path.join(wandb.run.dir, final_model_filepath))
     print("Final model and optimizer state saved.")
+
+    run.finish()
