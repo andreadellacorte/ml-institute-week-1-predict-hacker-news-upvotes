@@ -12,7 +12,7 @@ from tqdm import tqdm
 import wandb
 
 embedding_dim = 200
-batch_size = 2048  # Increased batch size to better utilize GPU memory
+batch_size = 4096  # Adjusted batch size
 num_epochs = 1
 context_size = 2
 dataset = "afmck/text8"
@@ -185,11 +185,12 @@ if __name__ == '__main__':
                     loss.backward()
                     optimizer.step()
                 epoch_loss += loss.item()
+                i+=1
                 if (i % 100 == 0):
                     pbar.update(100)
                     pbar.set_postfix(loss=loss.item(), sample_time=f"{(time.time() - start_sample_time) * 1000:.2f}ms")
-                    run.log({"loss": loss.item()})
-                i+=1
+
+                run.log({"loss": loss.item()})
         avg_loss = epoch_loss / len(dataloader)
 
         print(f"Epoch {epoch + 1}, Loss: {epoch_loss:.4f}, Avg Loss: {avg_loss:.4f}, Time: {time.time() - start_epoch_time:.2f} seconds")
