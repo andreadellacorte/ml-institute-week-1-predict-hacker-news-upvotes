@@ -16,3 +16,5 @@ else
     echo "Invalid parameter. Please use '--gpu' for GPU dependencies or '--cpu' for CPU dependencies."
     exit 1
 fi
+
+wandb login
