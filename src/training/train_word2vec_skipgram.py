@@ -12,12 +12,15 @@ from tqdm import tqdm
 import wandb
 
 embedding_dim = 200
-batch_size = 512  # Adjusted batch size
+batch_size = 128  # Adjusted batch size to balance speed and memory usage
 num_epochs = 1
 context_size = 2
+pin_memory = True
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+num_workers = 8
 dataset = "afmck/text8"
 model = "Word2Vec Skip-gram"
-learning_rate = 0.02  # Slightly increased learning rate to match larger batch size
+learning_rate = 0.01  # Slightly increased learning rate to match larger batch size
 
 ntfy_topic = "mlx7-institute-dellacorte"
 
@@ -32,6 +35,9 @@ run = wandb.init(
         "learning_rate": learning_rate,
         "batch_size": batch_size,
         "num_epochs": num_epochs,
+        "num_workers": num_workers,
+        "pin_memory": pin_memory,
+        "device": device,
         "embedding_dim": embedding_dim,
         "context_size": context_size,
         "dataset": dataset,
@@ -134,8 +140,9 @@ if __name__ == '__main__':
     print("Preparing Skip-gram dataset...")
     skipgram_dataset = SkipGramDataset(text.split(), context_size, token_to_index)
 
-    num_workers = min(8, multiprocessing.cpu_count())  # Increased number of workers for faster data loading
-    dataloader = DataLoader(skipgram_dataset, batch_size, shuffle=True, num_workers=num_workers, pin_memory=True)
+    num_workers = min(num_workers, multiprocessing.cpu_count())  # Use multiple workers for data loading
+      # Enable pinned memory for faster data transfer to GPU
+    dataloader = DataLoader(skipgram_dataset, batch_size, shuffle=True, num_workers=num_workers, pin_memory=pin_memory)
 
     # 3. Initialize the model, loss function, and optimizer
     print("Initializing model...")
@@ -156,10 +163,9 @@ if __name__ == '__main__':
     for epoch in range(num_epochs):
         epoch_loss = 0
         start_epoch_time = time.time()
-        i = len(dataloader)
         with tqdm(total=len(dataloader), desc=f"Epoch {epoch + 1}/{num_epochs}") as pbar:
-            for target, context in dataloader:
-                start_sample_time = time.time()
+            for batch_idx, (target, context) in enumerate(dataloader):
+                batch_start_time = time.time()
                 target, context = target.to(device, non_blocking=True), context.to(device, non_blocking=True)
                 context = context.view(-1)  # Ensure context is a 1D tensor of target indices
 
@@ -185,10 +191,10 @@ if __name__ == '__main__':
                     loss.backward()
                     optimizer.step()
                 epoch_loss += loss.item()
-                i+=1
-                if (i % 10 == 0):
-                    pbar.update(10)
-                    pbar.set_postfix(loss=loss.item(), sample_time=f"{(time.time() - start_sample_time) * 1000:.2f}ms")
+                pbar.set_postfix(
+                    loss=loss.item(),
+                    batch_time=f"{(time.time() - batch_start_time) * 1000:.2f}ms"
+                )
 
                 run.log({"loss": loss.item()})
         avg_loss = epoch_loss / len(dataloader)
