@@ -12,8 +12,8 @@ from tqdm import tqdm
 import wandb
 
 embedding_dim = 200
-batch_size = 2048  # Increased batch size to better utilize GPU memory
-num_epochs = 1
+batch_size = 1024  # Increased batch size to better utilize GPU memory
+num_epochs = 5
 context_size = 2
 dataset = "afmck/text8"
 model = "Word2Vec Skip-gram"
