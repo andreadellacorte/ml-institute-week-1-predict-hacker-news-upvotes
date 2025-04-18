@@ -12,12 +12,12 @@ from tqdm import tqdm
 import wandb
 
 embedding_dim = 200
-batch_size = 4096  # Adjusted batch size
+batch_size = 512  # Adjusted batch size
 num_epochs = 1
 context_size = 2
 dataset = "afmck/text8"
 model = "Word2Vec Skip-gram"
-learning_rate = 0.05  # Slightly increased learning rate to match larger batch size
+learning_rate = 0.02  # Slightly increased learning rate to match larger batch size
 
 ntfy_topic = "mlx7-institute-dellacorte"
 
@@ -186,8 +186,8 @@ if __name__ == '__main__':
                     optimizer.step()
                 epoch_loss += loss.item()
                 i+=1
-                if (i % 100 == 0):
-                    pbar.update(100)
+                if (i % 10 == 0):
+                    pbar.update(10)
                     pbar.set_postfix(loss=loss.item(), sample_time=f"{(time.time() - start_sample_time) * 1000:.2f}ms")
 
                 run.log({"loss": loss.item()})
