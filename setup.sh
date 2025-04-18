@@ -18,3 +18,5 @@ else
 fi
 
 wandb login
+
+echo "now run 'source .venv/bin/activate'"
